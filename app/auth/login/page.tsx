@@ -6,6 +6,7 @@ import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { Button } from "@/components/ui/button";
 import AuthLayouts from "@/app/Layouts/AuthLayouts";
 import Link from "next/link";
+import api from "@/lib/axios";
 
 interface LoginFormInputs {
   email: string;
@@ -17,12 +18,18 @@ const Login: React.FC = () => {
     register,
     handleSubmit,
     formState: { errors },
+    reset,
   } = useForm<LoginFormInputs>();
   const [showPassword, setShowPassword] = useState(false);
 
-  const onSubmit: SubmitHandler<LoginFormInputs> = (data) => {
+  const onSubmit: SubmitHandler<LoginFormInputs> = async (data) => {
     console.log("Login Data:", data);
-    // Call your API here
+    const authRes = await api.post("/api/auth/sign-in/email", {
+      email: data.email,
+      password: data.password,
+    });
+    reset();
+    console.log("user data after sign in : ", authRes);
   };
 
   return (
