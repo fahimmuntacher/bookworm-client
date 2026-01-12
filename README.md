@@ -16,9 +16,10 @@ bun dev
 
 ### Folder Structure 
 
+```
 bookworm-client/
 ├── public/                     # Static assets (favicon, images, book covers)
-│   ├── images/
+|   ├── images/
 │   │   ├── books/
 │   │   └── users/
 │   ├── icons/
@@ -101,3 +102,4 @@ bookworm-client/
 ├── package.json
 └── README.md
 
+```

@@ -1,10 +1,10 @@
-import Image from "next/image";
-import Navbar from "./src/Components/Navbar";
+import Navbar from "./Components/Navbar";
+import { PublicLayouts } from "./Layouts/PublicLayouts";
 
 export default function Home() {
   return (
-    <div className="flex flex-col min-h-screen justify-between">
-       <Navbar></Navbar>
-    </div>
+  <PublicLayouts>
+    This is public page
+  </PublicLayouts>
   );
 }
