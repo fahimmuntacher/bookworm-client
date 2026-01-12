@@ -5,12 +5,13 @@ import { useForm, SubmitHandler } from "react-hook-form";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { Button } from "@/components/ui/button";
 import AuthLayouts from "@/app/Layouts/AuthLayouts";
+import api from "@/lib/axios";
 
 interface RegistrationFormInputs {
   name: string;
   email: string;
   password: string;
-  photo: FileList;
+  image: FileList;
 }
 
 const Registration: React.FC = () => {
@@ -18,12 +19,50 @@ const Registration: React.FC = () => {
     register,
     handleSubmit,
     formState: { errors },
+    reset,
   } = useForm<RegistrationFormInputs>();
   const [showPassword, setShowPassword] = useState(false);
 
-  const onSubmit: SubmitHandler<RegistrationFormInputs> = (data) => {
-    console.log("Registration Data:", data);
-    // Handle registration API here
+  const [loading, setLoading] = useState(false);
+
+  const onSubmit: SubmitHandler<RegistrationFormInputs> = async (data) => {
+    try {
+      setLoading(true);
+      /* ---------- 1. Upload image to Cloudinary ---------- */
+      const formData = new FormData();
+      formData.append("image", data.image[0]);
+
+      const uploadRes = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!uploadRes.ok) {
+        throw new Error("Image upload failed");
+      }
+
+      const uploadData = await uploadRes.json();
+
+      /* ---------- 2. Send data to Better Auth ---------- */
+      const authRes = await api.post("/api/auth/sign-up/email", {
+        name: data.name,
+        email: data.email,
+        password: data.password,
+        image: uploadData.url, //
+      });
+
+      console.log("User registered:", authRes.data);
+
+      reset();
+
+      setLoading(false);
+    } catch (error: any) {
+      console.error(
+        "Registration error:",
+        error?.response?.data || error.message
+      );
+      setLoading(false);
+    }
   };
 
   return (
@@ -87,14 +126,14 @@ const Registration: React.FC = () => {
             id="photo"
             type="file"
             accept="image/*"
-            {...register("photo", { required: "Profile photo is required" })}
+            {...register("image", { required: "Profile photo is required" })}
             className={`px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400 text-sm ${
-              errors.photo ? "border-red-500" : "border-blue-200"
+              errors.image ? "border-red-500" : "border-blue-200"
             }`}
           />
-          {errors.photo && (
+          {errors.image && (
             <span className="text-red-500 text-xs mt-1">
-              {errors.photo.message}
+              {errors.image.message}
             </span>
           )}
         </div>
@@ -135,16 +174,47 @@ const Registration: React.FC = () => {
         {/* Submit Button */}
         <Button
           type="submit"
-          className="w-full bg-blue-800 hover:bg-blue-600  text-white transition-all"
+          disabled={loading}
+          className={`w-full bg-blue-800 hover:bg-blue-600 text-white transition-all
+    ${loading ? "cursor-not-allowed opacity-70" : ""}`}
         >
-          Sign Up
+          {loading ? (
+            <span className="flex items-center justify-center gap-2">
+              <svg
+                className="h-5 w-5 animate-spin text-white"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                />
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                />
+              </svg>
+              Signing up...
+            </span>
+          ) : (
+            "Sign Up"
+          )}
         </Button>
       </form>
 
       {/* Optional Links */}
       <div className="mt-4 text-center text-blue-600 text-sm">
         Already have an account?{" "}
-        <a href="/auth/login" className="hover:text-blue-800 transition-colors hover:underline">
+        <a
+          href="/auth/login"
+          className="hover:text-blue-800 transition-colors hover:underline"
+        >
           Sign In
         </a>
       </div>
