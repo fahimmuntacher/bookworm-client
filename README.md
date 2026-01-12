@@ -14,23 +14,90 @@ pnpm dev
 bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Folder Structure 
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+bookworm-client/
+├── public/                     # Static assets (favicon, images, book covers)
+│   ├── images/
+│   │   ├── books/
+│   │   └── users/
+│   ├── icons/
+│   └── favicon.ico
+├── src/
+│   ├── app/                     # Next.js App Router (if using App Router)
+│   │   ├── layout.tsx           # Main layout with Navbar/Footer
+│   │   ├── page.tsx             # Default route logic
+│   │   ├── admin/               # Admin pages
+│   │   │   ├── dashboard/
+│   │   │   │   └── page.tsx
+│   │   │   ├── books/
+│   │   │   │   ├── add.tsx
+│   │   │   │   ├── edit/[id].tsx
+│   │   │   │   └── list.tsx
+│   │   │   ├── genres/
+│   │   │   │   ├── add.tsx
+│   │   │   │   └── edit/[id].tsx
+│   │   │   ├── users/
+│   │   │   │   └── list.tsx
+│   │   │   ├── reviews/
+│   │   │   │   └── moderate.tsx
+│   │   │   └── tutorials/
+│   │   │       └── manage.tsx
+│   │   ├── user/                # User pages
+│   │   │   ├── dashboard/
+│   │   │   │   └── page.tsx
+│   │   │   ├── browse/
+│   │   │   │   └── page.tsx
+│   │   │   ├── library/
+│   │   │   │   └── page.tsx
+│   │   │   ├── book/
+│   │   │   │   └── [id].tsx
+│   │   │   └── tutorials/
+│   │   │       └── page.tsx
+│   │   ├── auth/
+│   │   │   ├── login.tsx
+│   │   │   └── register.tsx
+│   │   └── components/          # Page-specific components
+│   │       └── ...
+│   ├── components/              # Shared reusable components
+│   │   ├── Navbar.tsx
+│   │   ├── Footer.tsx
+│   │   ├── BookCard.tsx
+│   │   ├── ReviewCard.tsx
+│   │   ├── RatingStars.tsx
+│   │   ├── Carousel.tsx
+│   │   └── LoadingSpinner.tsx
+│   ├── context/                 # React Context for auth, theme, user data
+│   │   ├── AuthContext.tsx
+│   │   └── BookContext.tsx
+│   ├── hooks/                    # Custom hooks
+│   │   ├── useAuth.ts
+│   │   ├── useBooks.ts
+│   │   └── usePagination.ts
+│   ├── services/                # API calls (Axios/Fetch)
+│   │   ├── authService.ts
+│   │   ├── bookService.ts
+│   │   ├── genreService.ts
+│   │   ├── reviewService.ts
+│   │   └── tutorialService.ts
+│   ├── types/                   # TypeScript types/interfaces
+│   │   ├── book.ts
+│   │   ├── user.ts
+│   │   ├── review.ts
+│   │   └── tutorial.ts
+│   ├── utils/                   # Utility functions
+│   │   ├── formatDate.ts
+│   │   ├── calculateProgress.ts
+│   │   └── protectedRoute.tsx
+│   ├── styles/                  # CSS/SCSS or Tailwind configs
+│   │   ├── globals.css
+│   │   ├── theme.css
+│   │   └── components/
+│   └── assets/                  # Local assets like SVGs, icons
+│
+├── .env.local                   # Environment variables (API URL, keys)
+├── next.config.js               # Next.js config
+├── tsconfig.json                # TypeScript config
+├── package.json
+└── README.md
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
