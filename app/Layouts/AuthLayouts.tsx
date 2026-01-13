@@ -19,7 +19,7 @@ const AuthLayouts: React.FC<AuthLayoutProps> = ({ children }) => {
       <div className="mb-10 animate-slideDown">
         <Link href={"/"} className="flex items-center gap-2 hover:opacity-80 transition-opacity">
           <Logo size={48} />
-          <span className="font-bold text-2xl text-primary-700">BookWorm</span>
+          
         </Link>
       </div>
 
