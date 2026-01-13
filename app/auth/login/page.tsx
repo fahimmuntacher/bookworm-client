@@ -3,7 +3,6 @@
 import React, { useState } from "react";
 import { useForm, SubmitHandler } from "react-hook-form";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
-import { Button } from "@/components/ui/button";
 import AuthLayouts from "@/app/Layouts/AuthLayouts";
 import Link from "next/link";
 import api from "@/lib/axios";
@@ -21,103 +20,140 @@ const Login: React.FC = () => {
     reset,
   } = useForm<LoginFormInputs>();
   const [showPassword, setShowPassword] = useState(false);
+  const [loginError, setLoginError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
   const onSubmit: SubmitHandler<LoginFormInputs> = async (data) => {
-    console.log("Login Data:", data);
-    const authRes = await api.post("/api/auth/sign-in/email", {
-      email: data.email,
-      password: data.password,
-    });
-    reset();
-    console.log("user data after sign in : ", authRes);
+    try {
+      setLoginError(null);
+      setLoading(true);
+
+      const authRes = await api.post("/api/auth/sign-in/email", {
+        email: data.email,
+        password: data.password,
+      });
+
+      console.log("user data after sign in:", authRes);
+      reset();
+    } catch (error: any) {
+      const message =
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        "Invalid email or password";
+      setLoginError(message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <AuthLayouts>
-      <div className="text-center mb-6">
-        <h1 className="text-2xl font-semibold text-blue-800">Sign In</h1>
-        <p className="text-blue-600 text-sm mt-1">
-          Welcome back! Please login to your account.
-        </p>
-      </div>
-
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-        {/* Email */}
-        <div className="flex flex-col">
-          <label htmlFor="email" className="text-blue-700 text-sm mb-1">
-            Email
-          </label>
-          <input
-            id="email"
-            type="email"
-            placeholder="Enter your email"
-            {...register("email", { required: "Email is required" })}
-            className={`px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400 text-sm ${
-              errors.email ? "border-red-500" : "border-blue-200"
-            }`}
-          />
-          {errors.email && (
-            <span className="text-red-500 text-xs mt-1">
-              {errors.email.message}
-            </span>
-          )}
+      <div className="flex flex-col">
+        <div className="text-center mb-8">
+          <h1 className="text-4xl font-bold text-slate-900">Sign In</h1>
+          <p className="text-slate-600 text-base mt-2">
+            Welcome back! Please login to your account.
+          </p>
         </div>
 
-        {/* Password */}
-        <div className="flex flex-col relative">
-          <label htmlFor="password" className="text-blue-700 text-sm mb-1">
-            Password
-          </label>
-          <input
-            id="password"
-            type={showPassword ? "text" : "password"}
-            placeholder="Enter your password"
-            {...register("password", { required: "Password is required" })}
-            className={`px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400 text-sm ${
-              errors.password ? "border-red-500" : "border-blue-200"
-            }`}
-          />
-          <span
-            className="absolute right-3 top-9 cursor-pointer text-blue-400"
-            onClick={() => setShowPassword(!showPassword)}
-          >
-            {showPassword ? <FaEyeSlash /> : <FaEye />}
-          </span>
-          {errors.password && (
-            <span className="text-red-500 text-xs mt-1">
-              {errors.password.message}
-            </span>
-          )}
-
-          {/* Forgot Password Link */}
-          <div className="mt-2 text-right text-blue-600 text-sm">
-            <Link
-              href="/forgot-password"
-              className="hover:text-blue-900 transition-colors hover:underline"
-            >
-              Forgot password?
-            </Link>
+        {loginError && (
+          <div className="bg-accent-50 border border-accent-300 text-accent-700 rounded-lg px-4 py-3 mb-6 text-sm font-medium animate-slideDown">
+            {loginError}
           </div>
+        )}
+
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+          {/* Email */}
+          <div className="flex flex-col">
+            <label htmlFor="email" className="text-slate-900 text-sm font-semibold mb-2">
+              Email Address
+            </label>
+            <input
+              id="email"
+              type="email"
+              placeholder="you@example.com"
+              {...register("email", { 
+                required: "Email is required",
+                pattern: {
+                  value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                  message: "Invalid email address"
+                }
+              })}
+              className={`input-base ${
+                errors.email ? "border-accent-500 focus:ring-accent-500" : ""
+              }`}
+            />
+            {errors.email && (
+              <span className="text-accent-600 text-xs font-medium mt-2">
+                {errors.email.message}
+              </span>
+            )}
+          </div>
+
+          {/* Password */}
+          <div className="flex flex-col relative">
+            <label htmlFor="password" className="text-slate-900 text-sm font-semibold mb-2">
+              Password
+            </label>
+            <div className="relative">
+              <input
+                id="password"
+                type={showPassword ? "text" : "password"}
+                placeholder="••••••••"
+                {...register("password", {
+                  required: "Password is required",
+                  minLength: {
+                    value: 6,
+                    message: "Password must be at least 6 characters"
+                  }
+                })}
+                className={`input-base pr-10 ${
+                  errors.password ? "border-accent-500 focus:ring-accent-500" : ""
+                }`}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-3 text-slate-400 hover:text-primary-600 transition-colors"
+              >
+                {showPassword ? <FaEyeSlash size={18} /> : <FaEye size={18} />}
+              </button>
+            </div>
+            {errors.password && (
+              <span className="text-accent-600 text-xs font-medium mt-2">
+                {errors.password.message}
+              </span>
+            )}
+            <div className="mt-3 text-right">
+              <Link
+                href="/forgot-password"
+                className="text-primary-600 text-sm font-medium hover:text-primary-700 hover:underline transition-colors"
+              >
+                Forgot password?
+              </Link>
+            </div>
+          </div>
+
+          {/* Submit Button */}
+          <button
+            type="submit"
+            disabled={loading}
+            className="btn-primary w-full mt-8 py-3 text-base"
+          >
+            {loading ? "Signing in..." : "Sign In"}
+          </button>
+        </form>
+
+        {/* Sign Up Link */}
+        <div className="mt-6 text-center text-slate-600 text-sm">
+          Don&apos;t have an account?{" "}
+          <Link
+            href="/auth/registration"
+            className="font-semibold text-primary-600 hover:text-primary-700 hover:underline transition-colors"
+          >
+            Sign Up
+          </Link>
         </div>
-
-        {/* Submit Button */}
-        <Button
-          type="submit"
-          className="w-full bg-blue-900 hover:bg-blue-600 text-white transition-all"
-        >
-          Sign In
-        </Button>
-      </form>
-
-      {/* Sign Up Reference */}
-      <div className="mt-4 text-center text-blue-600 text-sm">
-        Don&apos;t have an account?{" "}
-        <Link
-          href="/auth/registration"
-          className="hover:text-blue-800 hover:underline font-medium transition-colors"
-        >
-          Sign Up
-        </Link>
       </div>
     </AuthLayouts>
   );

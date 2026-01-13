@@ -10,21 +10,26 @@ interface AuthLayoutProps {
 
 const AuthLayouts: React.FC<AuthLayoutProps> = ({ children }) => {
   return (
-    <div className="min-h-screen flex flex-col justify-center items-center bg-blue-50 px-4">
+    <div className="min-h-screen flex flex-col justify-center items-center bg-gradient-to-br from-primary-50 to-secondary-100 px-4 py-12">
+      {/* Decorative elements */}
+      <div className="absolute top-10 left-10 w-40 h-40 bg-primary-200 rounded-full blur-3xl opacity-30 -z-10"></div>
+      <div className="absolute bottom-10 right-10 w-40 h-40 bg-secondary-300 rounded-full blur-3xl opacity-30 -z-10"></div>
+
       {/* Logo */}
-      <div className="mb-10">
-        <Link href={"/"}>
+      <div className="mb-10 animate-slideDown">
+        <Link href={"/"} className="flex items-center gap-2 hover:opacity-80 transition-opacity">
           <Logo size={48} />
+          <span className="font-bold text-2xl text-primary-700">BookWorm</span>
         </Link>
       </div>
 
       {/* Auth Card */}
-      <div className="w-full max-w-md bg-white rounded-xl shadow-lg p-8">
+      <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl p-8 animate-slideUp">
         {children}
       </div>
 
       {/* Footer */}
-      <div className="mt-6 text-blue-700 text-sm text-center">
+      <div className="mt-8 text-slate-600 text-sm text-center">
         &copy; {new Date().getFullYear()} BookWorm. All rights reserved.
       </div>
     </div>

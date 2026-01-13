@@ -11,26 +11,27 @@ import Logo from "./Logo";
 
 const Footer = () => {
   return (
-    <footer className="mt-12 bg-blue-50 text-blue-900">
+    <footer className="mt-20 bg-gradient-to-b from-slate-50 to-slate-100 border-t border-primary-200">
       {/* Top Footer */}
-      <div className="max-w-7xl mx-auto px-6 py-12 grid grid-cols-1 md:grid-cols-4 gap-10">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 grid grid-cols-1 md:grid-cols-4 gap-10">
         {/* About Section */}
-        <div>
-         <span>
-            <Logo></Logo>
-         </span>
-          <p className="text-blue-700 leading-relaxed text-sm mt-2.5">
+        <div className="flex flex-col">
+          <div className="flex items-center gap-2 mb-4">
+            <Logo />
+            <span className="font-bold text-lg text-primary-700">BookWorm</span>
+          </div>
+          <p className="text-slate-600 leading-relaxed text-sm">
             Your go-to platform for exploring and reading books online.
             Discover, learn, and enjoy your favorite books in one place.
           </p>
 
-          <div className="flex gap-4 mt-4 text-base text-blue-800">
+          <div className="flex gap-4 mt-6 text-lg text-slate-600">
             {[FaFacebookF, FaTwitter, FaInstagram, FaLinkedinIn].map(
               (Icon, idx) => (
                 <a
                   href="#"
                   key={idx}
-                  className="hover:text-blue-600 transition-colors duration-200"
+                  className="hover:text-primary-600 transition-colors duration-200 hover:scale-110"
                 >
                   <Icon />
                 </a>
@@ -41,7 +42,7 @@ const Footer = () => {
 
         {/* Quick Links */}
         <div>
-          <h3 className="text-xl font-semibold mb-3">Quick Links</h3>
+          <h3 className="text-lg font-bold text-slate-900 mb-4">Quick Links</h3>
           <ul className="space-y-2 text-sm">
             {[
               "Home",
@@ -55,7 +56,7 @@ const Footer = () => {
               <li key={link}>
                 <a
                   href={`/${link.toLowerCase().replace(" ", "")}`}
-                  className="hover:text-blue-600 transition-colors duration-200"
+                  className="text-slate-600 hover:text-primary-600 transition-colors duration-200 font-medium"
                 >
                   {link}
                 </a>
@@ -66,7 +67,7 @@ const Footer = () => {
 
         {/* Resources */}
         <div>
-          <h3 className="text-xl font-semibold mb-3">Resources</h3>
+          <h3 className="text-lg font-bold text-slate-900 mb-4">Resources</h3>
           <ul className="space-y-2 text-sm">
             {[
               "Help Center",
@@ -78,7 +79,7 @@ const Footer = () => {
               <li key={link}>
                 <a
                   href="#"
-                  className="hover:text-blue-600 transition-colors duration-200"
+                  className="text-slate-600 hover:text-primary-600 transition-colors duration-200 font-medium"
                 >
                   {link}
                 </a>
@@ -89,8 +90,8 @@ const Footer = () => {
 
         {/* Newsletter */}
         <div>
-          <h3 className="text-xl font-semibold mb-3">Subscribe</h3>
-          <p className="text-blue-700 text-sm mb-3">
+          <h3 className="text-lg font-bold text-slate-900 mb-4">Subscribe</h3>
+          <p className="text-slate-600 text-sm mb-4">
             Get the latest updates, tutorials, and book recommendations directly
             in your inbox.
           </p>
@@ -98,17 +99,20 @@ const Footer = () => {
             <input
               type="email"
               placeholder="Enter your email"
-              className="flex-1 px-3 py-2 rounded-l-md border border-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-400 text-sm"
+              className="input-base flex-1"
             />
-            <button className="bg-blue-800 hover:bg-blue-600 text-white px-4 py-2 rounded-r-md text-sm transition-colors duration-200">
+            <button className="btn-primary whitespace-nowrap">
               Subscribe
             </button>
           </div>
         </div>
       </div>
 
+      {/* Divider */}
+      <div className="border-t border-primary-200"></div>
+
       {/* Bottom Footer */}
-      <div className="bg-blue-100 text-blue-700 text-center py-4 text-sm mt-6">
+      <div className="bg-slate-900 text-white text-center py-6 text-sm mt-0">
         &copy; {new Date().getFullYear()} BookWorm. All rights reserved.
       </div>
     </footer>

@@ -1,26 +1,141 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@theme {
+  --color-primary-50: #f0f7ff;
+  --color-primary-100: #e0efff;
+  --color-primary-200: #bae0ff;
+  --color-primary-300: #7ac8ff;
+  --color-primary-400: #36b7ff;
+  --color-primary-500: #0ea5e9;
+  --color-primary-600: #0284c7;
+  --color-primary-700: #0369a1;
+  --color-primary-800: #075985;
+  --color-primary-900: #0c4a6e;
+
+  --color-secondary-50: #faf8f3;
+  --color-secondary-100: #f5f0e6;
+  --color-secondary-200: #ede5d8;
+  --color-secondary-300: #e1d3c1;
+  --color-secondary-400: #d4c4b0;
+  --color-secondary-500: #c5b59b;
+  --color-secondary-600: #8b7355;
+  --color-secondary-700: #5c4a3d;
+  --color-secondary-800: #3d2f28;
+  --color-secondary-900: #2a1f1a;
+
+  --color-accent-50: #fef2f2;
+  --color-accent-100: #fee2e2;
+  --color-accent-200: #fecaca;
+  --color-accent-300: #fca5a5;
+  --color-accent-400: #f87171;
+  --color-accent-500: #ef4444;
+  --color-accent-600: #dc2626;
+  --color-accent-700: #b91c1c;
+  --color-accent-800: #991b1b;
+  --color-accent-900: #7f1d1d;
+
+  --font-sans: var(--font-geist-sans), system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), monospace;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-/* @media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #fffbfb;
+@layer utilities {
+  /* Button styles */
+  .btn-primary {
+    @apply px-4 py-2 bg-primary-600 text-white rounded-lg font-medium transition-all duration-200 hover:bg-primary-700 hover:shadow-md active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed;
   }
-} */
+
+  .btn-secondary {
+    @apply px-4 py-2 bg-secondary-200 text-secondary-900 rounded-lg font-medium transition-all duration-200 hover:bg-secondary-300 hover:shadow-md active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .btn-outline {
+    @apply px-4 py-2 border-2 border-primary-600 text-primary-600 rounded-lg font-medium transition-all duration-200 hover:bg-primary-50 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .btn-danger {
+    @apply px-4 py-2 bg-accent-600 text-white rounded-lg font-medium transition-all duration-200 hover:bg-accent-700 hover:shadow-md active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  /* Input styles */
+  .input-base {
+    @apply w-full px-4 py-2 border border-primary-200 rounded-lg font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent disabled:bg-gray-50 disabled:cursor-not-allowed;
+  }
+
+  /* Card styles */
+  .card {
+    @apply rounded-xl shadow-md bg-white overflow-hidden transition-all duration-200 hover:shadow-lg;
+  }
+
+  .card-hover {
+    @apply rounded-xl shadow-md bg-white overflow-hidden transition-all duration-200 hover:shadow-lg hover:scale-105 hover:shadow-xl;
+  }
+
+  /* Badge styles */
+  .badge {
+    @apply inline-block px-3 py-1 rounded-full text-xs font-semibold;
+  }
+
+  .badge-primary {
+    @apply inline-block px-3 py-1 rounded-full text-xs font-semibold bg-primary-100 text-primary-700;
+  }
+
+  .badge-secondary {
+    @apply inline-block px-3 py-1 rounded-full text-xs font-semibold bg-secondary-100 text-secondary-700;
+  }
+
+  .badge-accent {
+    @apply inline-block px-3 py-1 rounded-full text-xs font-semibold bg-accent-100 text-accent-700;
+  }
+
+  /* Text utilities */
+  .text-gradient {
+    @apply bg-gradient-to-r from-primary-600 to-accent-600 bg-clip-text text-transparent;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes slideDown {
+    from {
+      transform: translateY(-10px);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+
+  @keyframes slideUp {
+    from {
+      transform: translateY(10px);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+
+  .animate-fadeIn {
+    animation: fadeIn 0.3s ease-in-out;
+  }
+
+  .animate-slideDown {
+    animation: slideDown 0.3s ease-in-out;
+  }
+
+  .animate-slideUp {
+    animation: slideUp 0.3s ease-in-out;
+  }
+}
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  @apply bg-white text-slate-900 font-sans;
 }

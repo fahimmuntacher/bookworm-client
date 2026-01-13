@@ -1,131 +1,234 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
-import { FaBars, FaTimes, FaSearch, FaBookOpen } from "react-icons/fa";
-import { Button } from "@/components/ui/button";
+import { FaBars, FaTimes, FaSearch, FaUserCircle } from "react-icons/fa";
+import Image from "next/image";
 import Logo from "./Logo";
+import { useSession } from "@/lib/auth-client";
 
 export default function Navbar() {
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const pathname = usePathname();
+  const router = useRouter();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
 
-  const links = [
+  const { data: session } = useSession();
+  const user = session?.user;
+
+  // Links
+  const guestLinks = [
     { name: "Home", href: "/" },
     { name: "Browse Books", href: "/browse" },
-    { name: "About", href: "/about" },
     { name: "Tutorials", href: "/tutorials" },
+    { name: "About", href: "/about" },
     { name: "Contact", href: "/contact" },
   ];
 
-  const hoverColor = "hover:text-blue-600";
+  const userLinks = [
+    { name: "Home", href: "/" },
+    { name: "My Library", href: "/library" },
+    { name: "Browse Books", href: "/browse" },
+    { name: "Tutorials", href: "/dashboard/tutorials" },
+  ];
+
+  const adminLinks = [
+    { name: "Admin Dashboard", href: "/admin" },
+    { name: "Manage Books", href: "/admin/books" },
+    { name: "Manage Users", href: "/admin/users" },
+    { name: "Moderate Reviews", href: "/admin/reviews" },
+    { name: "Manage Tutorials", href: "/admin/tutorials" },
+  ];
+
+  const navLinks = user
+    ? (user as any)?.role === "admin"
+      ? adminLinks
+      : userLinks
+    : guestLinks;
+
+  const handleSignOut = () => {
+    router.push("/auth/login");
+  };
 
   return (
-    <header className="w-full px-5 z-50 shadow-md bg-blue-50">
-      {/* Top Info Bar */}
-      {/* <div className="hidden md:flex justify-between items-center bg-blue-50 text-blue-800 text-sm px-6 py-2 md:px-12">
-        <div className="flex gap-6">
-          <span>📞 +208-6666-0112</span>
-          <span>✉️ info@bookworm.com</span>
-          <span>🕒 Mon - Fri: 9 AM - 6 PM</span>
-        </div>
-        <div className="flex gap-4">
-          <Link
-            href="/auth/login"
-            className="flex items-center gap-1 font-medium hover:underline"
-          >
-            <FaUser /> Login
+    <header className="w-full bg-white border-b border-primary-100 sticky top-0 z-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between items-center h-16">
+          {/* Logo */}
+          <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+            <Logo />
+            
           </Link>
-        </div>
-      </div> */}
 
-      {/* Main Navigation */}
-      <div className="max-w-7xl mx-auto py-4 md:px-12 lg:px-0 flex justify-between items-center ">
-        {/* Logo */}
-        <Link href="/" className="flex items-center gap-2">
-          <Logo />
-        </Link>
-
-        {/* Desktop Menu */}
-        <nav className="hidden md:flex items-center gap-8">
-          {links.map((link) => {
-            const isActive = pathname === link.href;
-            return (
+          {/* Desktop Menu */}
+          <nav className="hidden md:flex items-center gap-8">
+            {navLinks.map((link) => (
               <Link
                 key={link.name}
                 href={link.href}
-                className={`font-semibold relative transition-all duration-300 ${
-                  isActive
-                    ? "text-blue-800 after:w-full"
-                    : `text-gray-700 ${hoverColor} after:w-0`
-                } after:absolute after:-bottom-1 after:left-0 after:h-1 after:bg-blue-800 after:rounded-full after:transition-all`}
+                className={`text-sm font-semibold transition-colors duration-200 ${
+                  pathname === link.href
+                    ? "text-primary-700 border-b-2 border-primary-600 pb-0.5"
+                    : "text-slate-700 hover:text-primary-600"
+                }`}
               >
                 {link.name}
               </Link>
-            );
-          })}
+            ))}
 
-          {/* Search & Library Button */}
-          <div className="flex items-center gap-4 ml-6">
-            <div className="relative">
-              <input
-                type="text"
-                placeholder="Search books..."
-                className="border border-blue-200 rounded-lg px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 w-64"
-              />
-              <FaSearch className="absolute right-3 top-1.5 text-blue-400" />
-            </div>
-            <Button className="flex items-center gap-1 bg-blue-800 hover:bg-blue-600 text-white transition-all">
-              <FaBookOpen /> My Library
-            </Button>
+            {/* Search for non-admin users */}
+            {user && (user as any)?.role !== "admin" && (
+              <div className="relative hidden lg:block">
+                <input
+                  type="text"
+                  placeholder="Search books..."
+                  className="input-base w-56"
+                />
+                <FaSearch className="absolute right-3 top-3 text-primary-400" />
+              </div>
+            )}
+
+            {/* Auth / User Avatar */}
+            {!user ? (
+              <div className="flex gap-2">
+                <button
+                  onClick={() => router.push("/auth/login")}
+                  className="btn-outline"
+                >
+                  Login
+                </button>
+                <button
+                  onClick={() => router.push("/auth/registration")}
+                  className="btn-primary"
+                >
+                  Sign Up
+                </button>
+              </div>
+            ) : (
+              <div className="relative">
+                <button
+                  onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                  className="w-10 h-10 rounded-full border-2 border-primary-600 overflow-hidden flex items-center justify-center hover:border-primary-700 transition-colors"
+                >
+                  {user.image ? (
+                    <Image
+                      src={user.image}
+                      alt="User Avatar"
+                      width={40}
+                      height={40}
+                      className="object-cover w-full h-full"
+                    />
+                  ) : (
+                    <FaUserCircle className="text-primary-600 w-8 h-8" />
+                  )}
+                </button>
+
+                {/* User Dropdown */}
+                {isUserMenuOpen && (
+                  <div className="absolute right-0 mt-3 w-48 bg-white border border-primary-200 rounded-lg shadow-lg overflow-hidden z-50 animate-slideDown">
+                    <Link
+                      href={(user as any)?.role === "admin" ? "/admin" : "/dashboard"}
+                      className="block px-4 py-3 text-slate-700 hover:bg-primary-50 transition-colors font-medium border-b border-primary-100"
+                      onClick={() => setIsUserMenuOpen(false)}
+                    >
+                      Dashboard
+                    </Link>
+                    {(user as any)?.role !== "admin" && (
+                      <Link
+                        href="/dashboard/profile"
+                        className="block px-4 py-3 text-slate-700 hover:bg-primary-50 transition-colors font-medium border-b border-primary-100"
+                        onClick={() => setIsUserMenuOpen(false)}
+                      >
+                        Profile
+                      </Link>
+                    )}
+                    <button
+                      onClick={handleSignOut}
+                      className="w-full text-left px-4 py-3 text-accent-600 hover:bg-accent-50 transition-colors font-medium"
+                    >
+                      Sign Out
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+          </nav>
+
+          {/* Mobile Menu Toggle */}
+          <div className="md:hidden">
+            <button
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="text-slate-700 hover:text-primary-600 transition-colors"
+            >
+              {isMobileMenuOpen ? <FaTimes size={24} /> : <FaBars size={24} />}
+            </button>
           </div>
-        </nav>
-
-        {/* Mobile Menu Button */}
-        <div className="md:hidden">
-          <button
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="text-gray-700 focus:outline-none"
-          >
-            {isMobileMenuOpen ? <FaTimes size={24} /> : <FaBars size={24} />}
-          </button>
         </div>
       </div>
 
       {/* Mobile Menu */}
       {isMobileMenuOpen && (
-        <nav className="md:hidden bg-white shadow-inner transition-all duration-300">
-          <ul className="flex flex-col gap-4 p-6">
-            {links.map((link) => {
-              const isActive = pathname === link.href;
-              return (
-                <li key={link.name}>
+        <div className="md:hidden bg-white border-t border-primary-100 animate-slideDown">
+          <ul className="flex flex-col gap-1 p-4">
+            {navLinks.map((link) => (
+              <Link
+                key={link.name}
+                href={link.href}
+                className={`font-medium px-3 py-2 rounded-lg transition-all ${
+                  pathname === link.href
+                    ? "bg-primary-100 text-primary-700"
+                    : "text-slate-700 hover:bg-primary-50 hover:text-primary-600"
+                }`}
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                {link.name}
+              </Link>
+            ))}
+
+            {!user ? (
+              <>
+                <button
+                  onClick={() => router.push("/auth/login")}
+                  className="w-full text-left btn-outline mt-2"
+                >
+                  Login
+                </button>
+                <button
+                  onClick={() => router.push("/auth/registration")}
+                  className="w-full btn-primary mt-2"
+                >
+                  Sign Up
+                </button>
+              </>
+            ) : (
+              <>
+                <Link
+                  href={(user as any)?.role === "admin" ? "/admin" : "/dashboard"}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="block px-3 py-2 font-medium text-slate-700 hover:bg-primary-50 hover:text-primary-600 rounded-lg transition-all"
+                >
+                  Dashboard
+                </Link>
+                {(user as any)?.role !== "admin" && (
                   <Link
-                    href={link.href}
-                    className={`block font-semibold py-2 px-4 rounded-lg transition-colors ${
-                      isActive
-                        ? "bg-blue-100 text-blue-800"
-                        : "text-gray-700 hover:bg-blue-50 hover:text-blue-700"
-                    }`}
+                    href="/dashboard/profile"
                     onClick={() => setIsMobileMenuOpen(false)}
+                    className="block px-3 py-2 font-medium text-slate-700 hover:bg-primary-50 hover:text-primary-600 rounded-lg transition-all"
                   >
-                    {link.name}
+                    Profile
                   </Link>
-                </li>
-              );
-            })}
-            {/* Mobile Login / Sign Up */}
-            <li className="flex flex-col gap-2 mt-4">
-              <Button className="border border-blue-800 text-blue-800 hover:bg-blue-800 hover:text-white w-full transition-all">
-                Login
-              </Button>
-              <Button className="bg-blue-100 hover:bg-blue-200 text-blue-800 w-full transition-all">
-                Sign Up
-              </Button>
-            </li>
+                )}
+                <button
+                  onClick={handleSignOut}
+                  className="w-full text-left btn-danger mt-2"
+                >
+                  Sign Out
+                </button>
+              </>
+            )}
           </ul>
-        </nav>
+        </div>
       )}
     </header>
   );
