@@ -1,33 +1,22 @@
 "use client";
 
 import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import Swal from "sweetalert2";
 import DashboardLayout from "@/app/Layouts/DashBoardLayout";
-import { FaEdit, FaTrash, FaPlus, FaSearch } from "react-icons/fa";
+import { FaPlus, FaEdit, FaTrash, FaSearch } from "react-icons/fa";
 import { motion } from "framer-motion";
 import api from "@/lib/axios";
-import Image from "next/image";
-import Loading from "./skeleton";
-import Swal from "sweetalert2";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "@/lib/auth-client";
-import AddBookModal from "./AddBookModal";
 
 
-interface Book {
+interface Genre {
   _id: string;
-  title: string;
-  author: string;
-  totalPages: number;
-  coverImage: string;
+  name: string;
   createdAt: string;
 }
 
 interface SessionUser {
-  id: string;
-  name: string;
-  email: string;
-  image?: string | null;
-  emailVerified: boolean;
   role: string;
 }
 
@@ -35,39 +24,49 @@ interface Session {
   user: SessionUser;
 }
 
-/* ===================== Edit Book Modal ===================== */
-function EditBookModal({
-  book,
+/* ===================== Add/Edit Modal ===================== */
+function GenreModal({
+  genre,
   onClose,
   isAdmin,
 }: {
-  book: Book;
+  genre?: Genre;
   onClose: () => void;
   isAdmin: boolean;
 }) {
-  const [form, setForm] = useState(book);
+  const [name, setName] = useState(genre?.name || "");
   const queryClient = useQueryClient();
 
-  const updateMutation = useMutation({
-    mutationFn: () =>
-      api.put(`/api/v1/books/${book._id}`, {
-        title: form.title,
-        author: form.author,
-        totalPages: form.totalPages,
-      }),
+  const mutation = useMutation({
+    mutationFn: async () => {
+      if (!name.trim()) throw new Error("Genre name is required");
+
+      if (genre) {
+        // Edit
+        const res = await api.put(`/api/v1/genres/${genre._id}`, { name });
+        return res.data;
+      } else {
+        // Add
+        const res = await api.post("/api/v1/genres", { name });
+        return res.data;
+      }
+    },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["books"] });
-      Swal.fire("Updated!", "Book updated successfully", "success");
+      queryClient.invalidateQueries({ queryKey: ["genres"] });
+      Swal.fire(
+        genre ? "Updated!" : "Created!",
+        `Genre ${genre ? "updated" : "added"} successfully`,
+        "success"
+      );
       onClose();
     },
     onError: (error: any) => {
-      Swal.fire("Error", "Failed to update book", "error");
-      console.log(error);
+      Swal.fire("Error", error.message || "Something went wrong", "error");
     },
   });
 
   if (!isAdmin) {
-    Swal.fire("Forbidden", "Only admin can edit books", "error");
+    Swal.fire("Forbidden", "Only admins can perform this action", "error");
     onClose();
     return null;
   }
@@ -75,37 +74,24 @@ function EditBookModal({
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
       <div className="bg-white rounded-xl w-full max-w-md p-6 space-y-4">
-        <h3 className="text-lg font-bold">Edit Book</h3>
+        <h3 className="text-lg font-bold">
+          {genre ? "Edit Genre" : "Add Genre"}
+        </h3>
         <input
           className="w-full border px-3 py-2 rounded"
-          value={form.title}
-          onChange={(e) => setForm({ ...form, title: e.target.value })}
-          placeholder="Title"
-        />
-        <input
-          className="w-full border px-3 py-2 rounded"
-          value={form.author}
-          onChange={(e) => setForm({ ...form, author: e.target.value })}
-          placeholder="Author"
-        />
-        <input
-          type="number"
-          className="w-full border px-3 py-2 rounded"
-          value={form.totalPages}
-          onChange={(e) =>
-            setForm({ ...form, totalPages: Number(e.target.value) })
-          }
-          placeholder="Total Pages"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="Genre Name"
         />
         <div className="flex justify-end gap-2">
           <button onClick={onClose} className="px-4 py-2 border rounded">
             Cancel
           </button>
           <button
-            onClick={() => updateMutation.mutate()}
+            onClick={() => mutation.mutate()}
             className="px-4 py-2 bg-primary-600 text-white rounded"
           >
-            Save
+            {genre ? "Save" : "Add"}
           </button>
         </div>
       </div>
@@ -114,44 +100,51 @@ function EditBookModal({
 }
 
 /* ===================== Main Page ===================== */
-export default function AdminBooksPage() {
+export default function AdminGenresPage() {
   const queryClient = useQueryClient();
   const { data: session } = useSession() as { data: Session | null };
   const isAdmin = session?.user?.role === "admin";
 
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
-  const limit = 8;
-  const [editBook, setEditBook] = useState<Book | null>(null);
-  const [addBookModal, setAddBookModal] = useState(false);
+  const limit = 10;
+  const [selectedGenre, setSelectedGenre] = useState<Genre | null>(null);
+  const [showModal, setShowModal] = useState(false);
+
+  /* ---------- Fetch Genres ---------- */
   const { data, isLoading } = useQuery({
-    queryKey: ["books", search, page],
+    queryKey: ["genres", search, page],
     queryFn: async () => {
-      const res = await api.get("/api/v1/books", {
+      const res = await api.get("/api/v1/genres", {
         params: { search, page, limit },
       });
-      return res.data.data;
+
+    //   console.log(res);
+      return res.data;
     },
   });
 
-  const books: Book[] = data?.books || [];
-  const total: number = data?.total || 0;
-  const totalPages = Math.ceil(total / limit);
+  const genres: Genre[] = data?.data || [];
+  const totalPages = Math.ceil((data?.total || 0) / limit);
 
+  /* ---------- Delete Genre ---------- */
   const deleteMutation = useMutation({
-    mutationFn: (id: string) => api.delete(`/api/v1/books/${id}`),
+    mutationFn: async (id: string) => {
+      const res = await api.delete(`/api/v1/genres/${id}`);
+      return res.data;
+    },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["books"] });
-      Swal.fire("Deleted!", "Book has been deleted", "success");
+      queryClient.invalidateQueries({ queryKey: ["genres"] });
+      Swal.fire("Deleted!", "Genre deleted successfully", "success");
     },
     onError: (error: any) => {
-      Swal.fire("Error", "Failed to delete book", "error");
+      Swal.fire("Error", error.message || "Failed to delete genre", "error");
     },
   });
 
   const handleDelete = (id: string) => {
     if (!isAdmin) {
-      Swal.fire("Unauthorized", "Only admin can delete books", "error");
+      Swal.fire("Unauthorized", "Only admin can delete genres", "error");
       return;
     }
     Swal.fire({
@@ -162,26 +155,25 @@ export default function AdminBooksPage() {
       confirmButtonColor: "#d33",
       confirmButtonText: "Yes, delete it!",
     }).then((result) => {
-      if (result.isConfirmed) {
-        deleteMutation.mutate(id);
-      }
+      if (result.isConfirmed) deleteMutation.mutate(id);
     });
   };
-
- 
 
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <h2 className="text-2xl font-bold text-slate-800">Manage Books</h2>
+        <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
+          <h2 className="text-2xl font-bold text-slate-800">Manage Genres</h2>
 
           {isAdmin && (
             <button
-              onClick={() => setAddBookModal(true)}
+              onClick={() => {
+                setSelectedGenre(null);
+                setShowModal(true);
+              }}
               className="flex items-center gap-2 bg-primary-600 text-white px-4 py-2 rounded-lg"
             >
-              <FaPlus /> Add Book
+              <FaPlus /> Add Genre
             </button>
           )}
         </div>
@@ -191,7 +183,7 @@ export default function AdminBooksPage() {
           <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
             type="text"
-            placeholder="Search by title or author..."
+            placeholder="Search genres..."
             value={search}
             onChange={(e) => {
               setPage(1);
@@ -206,68 +198,57 @@ export default function AdminBooksPage() {
           <table className="w-full text-sm">
             <thead className="bg-slate-100 text-slate-600">
               <tr>
-                <th className="px-4 py-3 text-left">Cover</th>
-                <th className="px-4 py-3 text-left">Title</th>
-                <th className="px-4 py-3 text-left">Author</th>
-                <th className="px-4 py-3 text-left">Pages</th>
+                <th className="px-4 py-3 text-left">Name</th>
                 <th className="px-4 py-3 text-left">Created</th>
-                <th className="px-4 py-3 text-right">Actions</th>
+                {isAdmin && <th className="px-4 py-3 text-right">Actions</th>}
               </tr>
             </thead>
             <tbody>
               {isLoading ? (
                 <tr>
-                  <td colSpan={6} className="py-6">
-                    <Loading />
+                  <td colSpan={3} className="py-6 text-center">
+                    Loading...
                   </td>
                 </tr>
-              ) : books.length === 0 ? (
+              ) : genres.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="text-center py-10 text-slate-500">
-                    No books found
+                  <td colSpan={3} className="py-10 text-center text-slate-500">
+                    No genres found
                   </td>
                 </tr>
               ) : (
-                books.map((book) => (
+                genres.map((genre) => (
                   <motion.tr
-                    key={book._id}
+                    key={genre._id}
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     className="border-t hover:bg-slate-50"
                   >
+                    <td className="px-4 py-3 font-medium">{genre.name}</td>
                     <td className="px-4 py-3">
-                      <Image
-                        src={book.coverImage}
-                        alt={book.title}
-                        width={40}
-                        height={56}
-                        className="w-10 h-14 object-cover rounded"
-                      />
+                      {new Date(genre.createdAt).toLocaleDateString()}
                     </td>
-                    <td className="px-4 py-3 font-medium">{book.title}</td>
-                    <td className="px-4 py-3">{book.author}</td>
-                    <td className="px-4 py-3">{book.totalPages}</td>
-                    <td className="px-4 py-3">
-                      {new Date(book.createdAt).toLocaleDateString()}
-                    </td>
-                    <td className="px-4 py-3">
-                      {isAdmin && (
+                    {isAdmin && (
+                      <td className="px-4 py-3">
                         <div className="flex justify-end gap-3">
                           <button
-                            onClick={() => setEditBook(book)}
+                            onClick={() => {
+                              setSelectedGenre(genre);
+                              setShowModal(true);
+                            }}
                             className="text-blue-600 hover:text-blue-800"
                           >
                             <FaEdit />
                           </button>
                           <button
-                            onClick={() => handleDelete(book._id)}
+                            onClick={() => handleDelete(genre._id)}
                             className="text-red-600 hover:text-red-800"
                           >
                             <FaTrash />
                           </button>
                         </div>
-                      )}
-                    </td>
+                      </td>
+                    )}
                   </motion.tr>
                 ))
               )}
@@ -277,7 +258,7 @@ export default function AdminBooksPage() {
 
         {/* Pagination */}
         {totalPages > 1 && (
-          <div className="flex justify-center gap-2">
+          <div className="flex justify-center gap-2 mt-4">
             <button
               disabled={page === 1}
               onClick={() => setPage((p) => p - 1)}
@@ -309,17 +290,13 @@ export default function AdminBooksPage() {
         )}
       </div>
 
-      {/* Modals */}
-      {editBook && isAdmin && (
-        <EditBookModal
-          book={editBook}
+      {/* Add/Edit Modal */}
+      {showModal && (
+        <GenreModal
+          genre={selectedGenre || undefined}
           isAdmin={isAdmin}
-          onClose={() => setEditBook(null)}
+          onClose={() => setShowModal(false)}
         />
-      )}
-
-      {addBookModal && isAdmin && (
-        <AddBookModal onClose={() => setAddBookModal(false)} />
       )}
     </DashboardLayout>
   );

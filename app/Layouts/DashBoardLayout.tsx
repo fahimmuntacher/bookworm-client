@@ -41,9 +41,27 @@ export default function DashboardLayout({
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
+  // Redirect if not logged in
   useEffect(() => {
     if (!isPending && !user) router.replace("/auth/login");
   }, [user, isPending, router]);
+
+  // ROLE GUARD
+  useEffect(() => {
+    if (isPending || !user) return;
+
+    const role = (user as any).role;
+
+    // Admin trying to access user dashboard
+    if (pathname.startsWith("/dashboard") && role !== "user") {
+      router.replace("/admin");
+    }
+
+    // User trying to access admin dashboard
+    if (pathname.startsWith("/admin") && role !== "admin") {
+      router.replace("/dashboard");
+    }
+  }, [user, isPending, pathname, router]);
 
   if (isPending || !user) return null;
 
