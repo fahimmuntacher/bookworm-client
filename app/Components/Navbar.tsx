@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useState } from "react";
+import { use, useState } from "react";
 import { FaBars, FaTimes, FaSearch, FaUserCircle } from "react-icons/fa";
 import Image from "next/image";
 import Logo from "./Logo";
@@ -15,8 +15,9 @@ export default function Navbar() {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
 
   const { data: session } = useSession();
+  console.log(session);
   const user = session?.user;
-
+  console.log(user);
   // Links
   const guestLinks = [
     { name: "Home", href: "/" },

@@ -6,6 +6,7 @@ import { FaEye, FaEyeSlash } from "react-icons/fa";
 import AuthLayouts from "@/app/Layouts/AuthLayouts";
 import Link from "next/link";
 import api from "@/lib/axios";
+import { useRouter } from "next/navigation";
 
 interface LoginFormInputs {
   email: string;
@@ -13,6 +14,7 @@ interface LoginFormInputs {
 }
 
 const Login: React.FC = () => {
+  const router = useRouter();
   const {
     register,
     handleSubmit,
@@ -22,10 +24,12 @@ const Login: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [loginError, setLoginError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   const onSubmit: SubmitHandler<LoginFormInputs> = async (data) => {
     try {
       setLoginError(null);
+      setSuccessMessage(null);
       setLoading(true);
 
       const authRes = await api.post("/api/auth/sign-in/email", {
@@ -34,13 +38,49 @@ const Login: React.FC = () => {
       });
 
       console.log("user data after sign in:", authRes);
+      
+      // Show success message
+      setSuccessMessage("Login successful! Redirecting...");
+      
+      // Reset form
       reset();
+      
+      // Redirect to dashboard after 1 second
+      setTimeout(() => {
+        router.push("/dashboard");
+      }, 1000);
+      
     } catch (error: any) {
-      const message =
-        error.response?.data?.message ||
-        error.response?.data?.error ||
-        "Invalid email or password";
-      setLoginError(message);
+      console.error("Login error:", error);
+      
+      let errorMessage = "Login failed. Please try again.";
+      
+      // Handle network errors
+      if (error.code === "ERR_NETWORK" || 
+          error.message?.includes("Network Error") || 
+          (!error.response && error.message?.includes("fetch"))) {
+        errorMessage = "Unable to connect to the server. Please check your internet connection and ensure the API server is running. If this persists, contact support.";
+      }
+      // Handle 500 errors
+      else if (error.response?.status === 500) {
+        errorMessage = error.response?.data?.message || 
+                      error.response?.data?.error ||
+                      error.message ||
+                      "Server error occurred. Please try again later or contact support.";
+      }
+      // Handle API response errors
+      else if (error.response) {
+        errorMessage = error.response?.data?.message ||
+                      error.response?.data?.error ||
+                      error.message ||
+                      "Invalid email or password";
+      }
+      // Handle other errors
+      else if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      setLoginError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -55,6 +95,12 @@ const Login: React.FC = () => {
             Welcome back! Please login to your account.
           </p>
         </div>
+
+        {successMessage && (
+          <div className="bg-green-50 border border-green-300 text-green-700 rounded-lg px-4 py-3 mb-6 text-sm font-medium animate-slideDown">
+            {successMessage}
+          </div>
+        )}
 
         {loginError && (
           <div className="bg-accent-50 border border-accent-300 text-accent-700 rounded-lg px-4 py-3 mb-6 text-sm font-medium animate-slideDown">

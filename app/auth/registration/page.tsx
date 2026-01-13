@@ -6,6 +6,7 @@ import { FaEye, FaEyeSlash } from "react-icons/fa";
 import AuthLayouts from "@/app/Layouts/AuthLayouts";
 import api from "@/lib/axios";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 interface RegistrationFormInputs {
   name: string;
@@ -15,6 +16,7 @@ interface RegistrationFormInputs {
 }
 
 const Registration: React.FC = () => {
+  const router = useRouter();
   const {
     register,
     handleSubmit,
@@ -25,37 +27,149 @@ const Registration: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [registrationError, setRegistrationError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   const onSubmit: SubmitHandler<RegistrationFormInputs> = async (data) => {
     try {
       setRegistrationError(null);
+      setSuccessMessage(null);
       setLoading(true);
+
+      // Validate image file before upload
+      const imageFile = data.image[0];
+      if (!imageFile) {
+        throw new Error("Please select an image file");
+      }
+
+      // Validate file type
+      if (!imageFile.type.startsWith("image/")) {
+        throw new Error("File must be an image (jpg, png, gif, etc.)");
+      }
+
+      // Validate file size (max 5MB)
+      const maxSize = 5 * 1024 * 1024; // 5MB
+      if (imageFile.size > maxSize) {
+        throw new Error("Image size must be less than 5MB");
+      }
 
       // 1. Upload image to server/cloud
       const formData = new FormData();
-      formData.append("image", data.image[0]);
-      const uploadRes = await fetch("/api/upload", {
-        method: "POST",
-        body: formData,
-      });
-      if (!uploadRes.ok) throw new Error("Image upload failed");
-      const uploadData = await uploadRes.json();
+      formData.append("image", imageFile);
+      
+      let uploadData;
+      try {
+        const uploadRes = await fetch("/api/upload", {
+          method: "POST",
+          body: formData,
+        });
+        
+        if (!uploadRes.ok) {
+          let errorData;
+          try {
+            errorData = await uploadRes.json();
+          } catch {
+            errorData = { error: `Server error (${uploadRes.status})` };
+          }
+          
+          // Handle specific status codes
+          if (uploadRes.status === 500) {
+            throw new Error(
+              errorData.error || 
+              "Server error during image upload. This might be due to missing Cloudinary configuration. Please contact support."
+            );
+          }
+          
+          const errorMessage = errorData.error || `Image upload failed (${uploadRes.status})`;
+          throw new Error(errorMessage);
+        }
+        
+        uploadData = await uploadRes.json();
+        
+        if (!uploadData.url) {
+          throw new Error("Image upload succeeded but no URL was returned");
+        }
+      } catch (uploadError: any) {
+        // Re-throw upload errors with context
+        if (uploadError.message) {
+          throw uploadError;
+        }
+        throw new Error("Failed to upload image. Please try again.");
+      }
 
       // 2. Send registration data
-      const authRes = await api.post("/api/auth/sign-up/email", {
-        name: data.name,
-        email: data.email,
-        password: data.password,
-        image: uploadData.url,
-      });
+      try {
+        const authRes = await api.post("/api/auth/sign-up/email", {
+          name: data.name,
+          email: data.email,
+          password: data.password,
+          image: uploadData.url,
+        });
 
-      console.log("User registered:", authRes.data);
-      reset();
-      setPreviewImage(null);
+        console.log("User registered:", authRes.data);
+        
+        // Show success message
+        setSuccessMessage("Registration successful! Redirecting to login...");
+        
+        // Reset form
+        reset();
+        setPreviewImage(null);
+        
+        // Redirect to login after 2 seconds
+        setTimeout(() => {
+          router.push("/auth/login");
+        }, 2000);
+        
+      } catch (authError: any) {
+        console.error("Auth API error:", authError);
+        
+        // Handle 500 errors from auth API
+        if (authError.response?.status === 500) {
+          const errorMsg = authError.response?.data?.message || 
+                          authError.response?.data?.error ||
+                          "Server error during registration. Please try again later or contact support.";
+          throw new Error(errorMsg);
+        }
+        
+        // Re-throw to be handled by outer catch
+        throw authError;
+      }
     } catch (error: any) {
-      const message = error.message || "Registration failed. Please try again.";
-      setRegistrationError(message);
-      console.error("Registration error:", error?.response?.data || error.message);
+      console.error("Registration error:", error);
+      
+      let errorMessage = "Registration failed. Please try again.";
+      
+      // Handle upload errors specifically
+      if (error.message?.toLowerCase().includes("upload") || 
+          error.message?.toLowerCase().includes("cloudinary") ||
+          error.message?.toLowerCase().includes("image")) {
+        errorMessage = `Image upload failed: ${error.message}`;
+      }
+      // Handle network errors
+      else if (error.code === "ERR_NETWORK" || 
+               error.message?.includes("Network Error") || 
+               (!error.response && error.message?.includes("fetch"))) {
+        errorMessage = "Unable to connect to the server. Please check your internet connection and try again.";
+      }
+      // Handle 500 errors
+      else if (error.response?.status === 500) {
+        errorMessage = error.response?.data?.message || 
+                      error.response?.data?.error ||
+                      error.message ||
+                      "Server error occurred. Please try again later or contact support.";
+      }
+      // Handle API response errors
+      else if (error.response) {
+        errorMessage = error.response?.data?.message ||
+                      error.response?.data?.error ||
+                      error.message ||
+                      "Registration failed. Please check your information and try again.";
+      }
+      // Handle other errors
+      else if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      setRegistrationError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -81,6 +195,12 @@ const Registration: React.FC = () => {
             Create your account and join BookWorm!
           </p>
         </div>
+
+        {successMessage && (
+          <div className="bg-green-50 border border-green-300 text-green-700 rounded-lg px-4 py-3 mb-6 text-sm font-medium animate-slideDown">
+            {successMessage}
+          </div>
+        )}
 
         {registrationError && (
           <div className="bg-accent-50 border border-accent-300 text-accent-700 rounded-lg px-4 py-3 mb-6 text-sm font-medium animate-slideDown">
