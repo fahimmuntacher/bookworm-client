@@ -6,7 +6,7 @@ import { FaEdit, FaTrash, FaPlus, FaSearch } from "react-icons/fa";
 import { motion } from "framer-motion";
 import api from "@/lib/axios";
 import Image from "next/image";
-import Loading from "./skeleton";
+import Loading from "../skeleton";
 import Swal from "sweetalert2";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "@/lib/auth-client";

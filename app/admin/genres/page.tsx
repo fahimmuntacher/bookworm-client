@@ -8,7 +8,7 @@ import { FaPlus, FaEdit, FaTrash, FaSearch } from "react-icons/fa";
 import { motion } from "framer-motion";
 import api from "@/lib/axios";
 import { useSession } from "@/lib/auth-client";
-
+import Loading from "../skeleton";
 
 interface Genre {
   _id: string;
@@ -119,7 +119,7 @@ export default function AdminGenresPage() {
         params: { search, page, limit },
       });
 
-    //   console.log(res);
+      //   console.log(res);
       return res.data;
     },
   });
@@ -206,8 +206,8 @@ export default function AdminGenresPage() {
             <tbody>
               {isLoading ? (
                 <tr>
-                  <td colSpan={3} className="py-6 text-center">
-                    Loading...
+                  <td colSpan={6} className="py-6">
+                    <Loading />
                   </td>
                 </tr>
               ) : genres.length === 0 ? (
