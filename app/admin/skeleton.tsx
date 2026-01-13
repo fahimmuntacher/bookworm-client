@@ -6,17 +6,6 @@ const Loading = () => {
   return (
     <div className="bg-white rounded-xl shadow overflow-x-auto">
       <table className="w-full text-sm">
-        <thead className="bg-slate-100">
-          <tr>
-            <th className="px-4 py-3">Cover</th>
-            <th className="px-4 py-3">Title</th>
-            <th className="px-4 py-3">Author</th>
-            <th className="px-4 py-3">Pages</th>
-            <th className="px-4 py-3">Created</th>
-            <th className="px-4 py-3 text-right">Actions</th>
-          </tr>
-        </thead>
-
         <tbody>
           {Array.from({ length: rows }).map((_, i) => (
             <tr key={i} className="border-t animate-pulse">
