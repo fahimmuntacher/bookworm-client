@@ -21,8 +21,8 @@ export default function Navbar() {
   // Links
   const guestLinks = [
     { name: "Home", href: "/" },
-    { name: "Browse Books", href: "/browse" },
-    { name: "Tutorials", href: "/tutorials" },
+    { name: "Browse Books", href: "/browse-books" },
+    { name: "Tutorials", href: "/dashboard/tutorials" },
     { name: "About", href: "/about" },
     { name: "Contact", href: "/contact" },
   ];

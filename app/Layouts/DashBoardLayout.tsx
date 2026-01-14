@@ -19,6 +19,7 @@ import Logo from "../Components/Logo";
 import { useSession } from "@/lib/auth-client";
 import { cn } from "@/lib/utils";
 import { Library } from "lucide-react";
+import api from "@/lib/axios";
 
 export default function DashboardLayout({
   children,
@@ -40,6 +41,16 @@ export default function DashboardLayout({
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
+
+  const handleSignOut = async () => {
+    try {
+      await api.post("/api/auth/sign-out");
+      router.replace("/auth/login"); // prevent back navigation
+    } catch (error) {
+      console.error("Sign out failed", error);
+      router.replace("/auth/login"); // fallback
+    }
+  };
 
   // Redirect if not logged in
   useEffect(() => {
@@ -152,7 +163,7 @@ export default function DashboardLayout({
                   </p>
                 </div>
                 <button
-                  onClick={() => router.push("/auth/login")}
+                  onClick={handleSignOut}
                   className="text-accent-600 hover:text-accent-700 hover:scale-110 transition-all"
                   title="Sign out"
                 >
