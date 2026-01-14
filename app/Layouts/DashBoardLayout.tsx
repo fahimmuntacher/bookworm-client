@@ -74,12 +74,13 @@ export default function DashboardLayout({
           { name: "Users", icon: FaUsers, href: "/admin/users" },
           { name: "Reviews", icon: FaStar, href: "/admin/reviews" },
           { name: "Tutorials", icon: FaYoutube, href: "/admin/tutorials" },
+          { name: "Profile", icon: FaUserCircle, href: "/profile" },
         ]
       : [
           { name: "Dashboard", icon: FaTachometerAlt, href: "/dashboard" },
           { name: "My Library", icon: FaBook, href: "/dashboard/library" },
           { name: "Tutorials", icon: FaYoutube, href: "/dashboard/tutorials" },
-          { name: "Profile", icon: FaUserCircle, href: "/dashboard/profile" },
+          { name: "Profile", icon: FaUserCircle, href: "/profile" },
         ];
 
   const isActive = (href: string) => {

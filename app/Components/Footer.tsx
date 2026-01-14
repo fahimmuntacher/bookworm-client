@@ -18,7 +18,7 @@ const Footer = () => {
         <div className="flex flex-col">
           <div className="flex items-center gap-2 mb-4">
             <Logo />
-            <span className="font-bold text-lg text-primary-700">BookWorm</span>
+           
           </div>
           <p className="text-slate-600 leading-relaxed text-sm">
             Your go-to platform for exploring and reading books online.

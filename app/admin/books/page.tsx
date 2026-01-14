@@ -19,6 +19,7 @@ interface Book {
   author: string;
   totalPages: number;
   coverImage: string;
+  genres: string[];
   createdAt: string;
 }
 

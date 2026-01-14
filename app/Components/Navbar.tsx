@@ -29,8 +29,8 @@ export default function Navbar() {
 
   const userLinks = [
     { name: "Home", href: "/" },
-    { name: "My Library", href: "/library" },
-    { name: "Browse Books", href: "/browse" },
+    { name: "My Library", href: "/dashboard/library" },
+    { name: "Browse Books", href: "/browse-books" },
     { name: "Tutorials", href: "/dashboard/tutorials" },
   ];
 
@@ -57,9 +57,11 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+          <Link
+            href="/"
+            className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+          >
             <Logo />
-            
           </Link>
 
           {/* Desktop Menu */}
@@ -77,18 +79,6 @@ export default function Navbar() {
                 {link.name}
               </Link>
             ))}
-
-            {/* Search for non-admin users */}
-            {user && (user as any)?.role !== "admin" && (
-              <div className="relative hidden lg:block">
-                <input
-                  type="text"
-                  placeholder="Search books..."
-                  className="input-base w-56"
-                />
-                <FaSearch className="absolute right-3 top-3 text-primary-400" />
-              </div>
-            )}
 
             {/* Auth / User Avatar */}
             {!user ? (
@@ -129,7 +119,11 @@ export default function Navbar() {
                 {isUserMenuOpen && (
                   <div className="absolute right-0 mt-3 w-48 bg-white border border-primary-200 rounded-lg shadow-lg overflow-hidden z-50 animate-slideDown">
                     <Link
-                      href={(user as any)?.role === "admin" ? "/admin" : "/dashboard"}
+                      href={
+                        (user as any)?.role === "admin"
+                          ? "/admin"
+                          : "/dashboard"
+                      }
                       className="block px-4 py-3 text-slate-700 hover:bg-primary-50 transition-colors font-medium border-b border-primary-100"
                       onClick={() => setIsUserMenuOpen(false)}
                     >
@@ -205,7 +199,9 @@ export default function Navbar() {
             ) : (
               <>
                 <Link
-                  href={(user as any)?.role === "admin" ? "/admin" : "/dashboard"}
+                  href={
+                    (user as any)?.role === "admin" ? "/admin" : "/dashboard"
+                  }
                   onClick={() => setIsMobileMenuOpen(false)}
                   className="block px-3 py-2 font-medium text-slate-700 hover:bg-primary-50 hover:text-primary-600 rounded-lg transition-all"
                 >

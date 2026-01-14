@@ -2,8 +2,11 @@
 
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
+
 import Swal from "sweetalert2";
 import api from "@/lib/axios";
+import { desc } from "framer-motion/client";
 
 interface AddBookModalProps {
   onClose: () => void;
@@ -14,11 +17,23 @@ export default function AddBookModal({ onClose }: AddBookModalProps) {
     title: "",
     author: "",
     totalPages: 0,
+    genres: [] as string[],
+    description : "",
     coverFile: null as File | null,
   });
   const [uploading, setUploading] = useState(false);
 
   const queryClient = useQueryClient();
+
+  const { data: genresData } = useQuery({
+    queryKey: ["genres"],
+    queryFn: async () => {
+      const res = await api.get("/api/v1/genres");
+      return res.data;
+    },
+  });
+
+  const genres = genresData?.data || [];
 
   const createMutation = useMutation({
     mutationFn: async () => {
@@ -65,9 +80,12 @@ export default function AddBookModal({ onClose }: AddBookModalProps) {
         title: form.title,
         author: form.author,
         totalPages: form.totalPages,
+        genres: form.genres,
+        description: form.description,
         coverImage: coverImageUrl,
       });
 
+      console.log(res);
       setUploading(false);
       return res.data;
     },
@@ -100,6 +118,12 @@ export default function AddBookModal({ onClose }: AddBookModalProps) {
           onChange={(e) => setForm({ ...form, author: e.target.value })}
           placeholder="Author"
         />
+        <input
+          className="w-full border px-3 py-2 rounded"
+          value={form.description}
+          onChange={(e) => setForm({ ...form, description: e.target.value })}
+          placeholder="Description"
+        />
 
         <input
           type="number"
@@ -119,6 +143,24 @@ export default function AddBookModal({ onClose }: AddBookModalProps) {
           }
           className="w-full border px-3 py-2 rounded"
         />
+
+        <select
+          multiple
+          value={form.genres}
+          onChange={(e) => {
+            const selected = Array.from(e.target.selectedOptions).map(
+              (option) => option.value
+            );
+            setForm({ ...form, genres: selected });
+          }}
+          className="w-full border px-3 py-2 rounded h-32"
+        >
+          {genres.map((genre: any) => (
+            <option key={genre._id} value={genre.name}>
+              {genre.name}
+            </option>
+          ))}
+        </select>
 
         <div className="flex justify-end gap-2">
           <button onClick={onClose} className="px-4 py-2 border rounded">

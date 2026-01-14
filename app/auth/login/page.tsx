@@ -37,7 +37,7 @@ const Login: React.FC = () => {
         password: data.password,
       });
 
-      console.log("user data after sign in:", authRes);
+      console.log("user data after sign in:", authRes.data);
       
       // Show success message
       setSuccessMessage("Login successful! Redirecting...");
